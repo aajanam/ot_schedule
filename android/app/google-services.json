@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "835764107918",
+    "project_id": "otschedule",
+    "storage_bucket": "otschedule.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:835764107918:android:3be75f2e5eacd1be4827df",
+        "android_client_info": {
+          "package_name": "com.aajanam.otschedule"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "835764107918-hdt1bjv6jcl74e9r565nqpebscar3006.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aajanam.otschedule",
+            "certificate_hash": "db9fd8ec6d76831c9566ff888d0e3801cd64d499"
+          }
+        },
+        {
+          "client_id": "835764107918-1t2j7r0nheevo4cu13q3atejh1mrjc3d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGS22FE8A4_z6y_F152zoLxB3AwqPVfB8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "835764107918-1t2j7r0nheevo4cu13q3atejh1mrjc3d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

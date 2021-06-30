@@ -2,9 +2,10 @@ import 'dart:ui';
 
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:date_format/date_format.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_week_view/flutter_week_view.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:otschedule/model/events.dart';
 import 'package:otschedule/model/hospital.dart';
 import 'package:otschedule/model/users.dart';
@@ -24,6 +25,7 @@ class EventForm extends StatefulWidget {
   final Events event;
   final DateTime date;
   final int hour;
+  List notifGroup = [];
 
   EventForm({this.event, this.date, this.hour, this.hospital, this.numbOt, this.index});
   @override
@@ -45,6 +47,7 @@ class _EventFormState extends State<EventForm> {
   String OT;
   List bookTimeAll = [];
   List<String> suggestions = [];
+  String dept = '';
 
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
@@ -52,7 +55,18 @@ class _EventFormState extends State<EventForm> {
   TextEditingController dateController = TextEditingController();
   TextEditingController doctorController = TextEditingController();
 
+  List<String> playIds =[];
 
+  Future sendMessage( playerId, messageTitle, messageBody) async {
+    await OneSignal.shared.postNotification(OSCreateNotification(
+        playerIds: playerId,
+        content: messageBody,
+        heading: messageTitle,
+        sendAfter: selDate.add(Duration(hours: startHour - 2)).toUtc(),
+        androidSmallIcon: 'onesignal',
+      androidLargeIcon: 'onesignal_blue'
+    ));
+  }
 
   bool operator ==(dynamic other) =>
       other != null && other is EventForm && this.startHour == other.event.startHour;
@@ -124,7 +138,7 @@ class _EventFormState extends State<EventForm> {
             if(snap.hasData){
 
               return StreamBuilder<List<Events>>(
-                stream: event.events(snap.data.firstWhereOrNull((element) => element.name == widget.hospital.toLowerCase()).id),
+                stream: event.events(snap.data.firstWhereOrNull((element) => element.name.toLowerCase() == widget.hospital.toLowerCase()).id),
                 builder: (context, snapshot) {
                   if(snapshot.hasData) {
                         getTimeList(snapshot, date);
@@ -135,7 +149,7 @@ class _EventFormState extends State<EventForm> {
                     builder: (context, snp) {
                      if(snp.hasData){
                        suggestions.clear();
-                       for(var i in snp.data.where((element) => element.isDoctor == true && element.workPlace.toLowerCase() == widget.hospital.toLowerCase())){
+                       for(var i in snp?.data?.where((element) => element.isDoctor == true && element?.workPlace?.toLowerCase() == widget?.hospital?.toLowerCase())){
                         suggestions.add(i.displayName);
                        }
                      }
@@ -148,9 +162,8 @@ class _EventFormState extends State<EventForm> {
                                     Expanded(
                                       flex: 6,
                                       child: TextFormField(
-                                          onTap: widget.event != null && widget.event.creatorId == Auth().currentUser.uid  ?
+                                          onTap: youCanEdit || drCanEdit  ?
                                               () async {
-                                            /*getInitList();*/
                                             DateTime picked = await showDatePicker(
                                                 context: context,
                                                 initialDate: selDate,
@@ -159,39 +172,28 @@ class _EventFormState extends State<EventForm> {
                                             if (picked != null){
                                               setState(() {
                                                 selDate = picked;
-                                                /*bookTimeOT_2.clear();*/
                                                 dateController.text = formatDate(picked,['dd',' ','M',' ', 'yy']);
                                               });
                                             }
                                           } : null,
                                           decoration: InputDecoration(
-                                              contentPadding: EdgeInsets.zero,
                                               labelStyle: TextStyle(color:Colors.black54),
                                               labelText: 'Date',
-                                              suffixIcon:  Icon(Icons.arrow_drop_down, color: widget.event != null && widget.event.creatorId == Auth().currentUser.uid ? Colors.black : Colors.transparent,),
+                                              suffixIcon:  Icon(Icons.arrow_drop_down, color:youCanEdit || drCanEdit ? Colors.black : Colors.transparent,),
                                               icon: Icon(Icons.date_range_outlined, color: widget.event != null ? Colors.lightBlue.shade700 : Colors.black54),
                                               border: InputBorder.none
                                           ),
                                           expands: false,
                                           readOnly: true,
                                           controller: dateController,
-                                          onChanged: (value) {
-                                            /*getTimeList(SnapshotAll, snap, bookTimeOT_2,
-                                              availableTime_2,
-                                              DateTime.parse(value));*/
-
-                                          }
                                       ),
                                     ),
                                     Expanded(
                                         flex: 4,
                                         child: youCanEdit || drCanEdit ?  DropdownButtonFormField(
-                                          //onTap: (){getTimeList(snapshot, date);},
                                           isDense: true,
                                           isExpanded: false,
-
                                           items: oTList.map((e) => DropdownMenuItem(
-
                                               value: e,
                                               child: Text(e))).toList(),
                                           onChanged: (newValue) {
@@ -252,7 +254,6 @@ class _EventFormState extends State<EventForm> {
                                                  ),
 
                                                  DropdownButton<String>(
-                                                   //value: widget.hour == null ? availableTimeAll[0]?.toString() : '7',
                                                      underline: Container(),
                                                      isExpanded: true,
                                                      isDense: true,
@@ -277,9 +278,7 @@ class _EventFormState extends State<EventForm> {
                                                        setState(() {
                                                          startHour = int.parse(value);
                                                        });
-                                                      /* if(availableTime.contains(startHour + 2)){
-                                                         durationList.add('2');
-                                                       }*/
+                                                       getDurationLists();
                                                      }
                                                  ),
                                                ],
@@ -333,9 +332,13 @@ class _EventFormState extends State<EventForm> {
                                 ),
                                 SizedBox(height: 20,),
                                 AutoCompleteTextField(
-                                  textCapitalization: TextCapitalization.sentences,
+
+                                  textCapitalization: TextCapitalization.words,
                                     decoration:
-                                    InputDecoration(icon:Icon(Icons.person_outline, color: Colors.lightBlue.shade700),
+                                    InputDecoration(
+                                      enabled: youCanEdit || drCanEdit ? true : false,
+                                      contentPadding: EdgeInsets.zero,
+                                      icon:Icon(Icons.person_outline, color: Colors.lightBlue.shade700),
                                       labelText: 'Doctor\'s name',
                                       hintStyle: TextStyle(color: Colors.black38),),
                                     clearOnSubmit: false,
@@ -344,6 +347,11 @@ class _EventFormState extends State<EventForm> {
                                       doctorController.text = item;
                                       event.changeDoctorName = item;
                                     },
+                                  textChanged: (value){
+                                      setState(() {
+                                        event.changeDoctorName = value;
+                                      });
+                                  },
                                     key: key,
                                     suggestions: suggestions,
                                     itemSorter: (a, b){
@@ -369,8 +377,9 @@ class _EventFormState extends State<EventForm> {
                                       );
                                     },
                                 textInputAction: TextInputAction.next,),
-                                SizedBox(height: 8,),
+                                SizedBox(height: 18,),
                                 TextFormField(
+                                  maxLines: null,
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit || drCanEdit ? true : false,
                                   decoration:
@@ -384,8 +393,9 @@ class _EventFormState extends State<EventForm> {
                                   event.changeProcedure = val,
                                   textInputAction: TextInputAction.next,
                                 ),
-                                SizedBox(height: 15,),
+                                SizedBox(height: 18,),
                                 TextFormField(
+                                  maxLines: null,
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit || drCanEdit ? true : false,
                                   decoration:
@@ -399,13 +409,14 @@ class _EventFormState extends State<EventForm> {
                                   event.changeDiagnose = val,
                                   textInputAction: TextInputAction.next,
                                 ),
-                                SizedBox(height: 8,),
+                                SizedBox(height: 18,),
                                 TextFormField(
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit  || drCanEdit? true : false,
                                   maxLines: null,
                                   decoration:
                                   InputDecoration(icon:Icon(Icons.sick_outlined, color: Colors.lightBlue.shade700),
+                                      contentPadding: EdgeInsets.zero,
                                       labelText: 'Patient\'s description / Request description',
                                       hintStyle: TextStyle(color: Colors.black38)),
                                   initialValue: event.patientName,
@@ -414,7 +425,7 @@ class _EventFormState extends State<EventForm> {
                                   keyboardType: TextInputType.multiline,
                                   textInputAction: TextInputAction.newline,
                                 ),
-                                SizedBox(height: 25,),
+                                SizedBox(height: 33,),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
@@ -441,12 +452,39 @@ class _EventFormState extends State<EventForm> {
                                         setState(() {
                                           _formKey.currentState.save();
                                           event.changeDate = selDate;
-                                          event.changeDoctorId = snp.data.firstWhereOrNull((element) => element.displayName == doctorController.text).uid;
+                                          event.changeDoctorId = snp?.data?.firstWhereOrNull((element) => element.displayName == doctorController.text)?.uid;
                                           event.changeStartHour = startHour;
-                                          //event.changeEndHour = endTIme;
                                           event.changeBookTime = bookTime;
+                                          dept = snp?.data?.firstWhereOrNull((element) => element.displayName == event.doctorName)?.department;
                                         });
-                                        event.saveEvent(snap.data.where((element) => element.name == widget.hospital.toLowerCase()).first.id);
+                                        if (dept == 'Obs & Gyn') {
+                                          for (var i in snp.data.where((element) => element.department == dept || element.department == 'Pediatric')){
+                                            if (i.deviceToken != null) {
+                                              playIds.add(i.deviceToken.toString());
+                                            }
+                                          }
+                                        }else{
+                                          for (var i in snp.data.where((element) => element.department == dept)){
+                                            if (i.deviceToken != null) {
+                                              playIds.add(i.deviceToken.toString());
+                                            }
+                                          }
+                                        }
+                                        if (widget.event == null && playIds.isNotEmpty) {
+                                          sendMessage(
+                                              playIds,
+                                              startHour >= 10 ? '${dateController.text} at $startHour:00' : '${dateController.text} at 0$startHour:00',
+                                              '${event.procedure} by Dr.${event.doctorName}');
+                                        }
+                                        else if ((widget.event != null && widget?.event?.startHour  != startHour || widget.event != null && DateTime.parse(widget?.event?.date) != selDate) &&  playIds.isNotEmpty) {
+                                          sendMessage(
+                                              playIds,
+                                              startHour >= 10 ? '${dateController.text} at $startHour:00' : '${dateController.text} at 0$startHour:00',
+                                              '${event.procedure} by Dr.${event.doctorName}');
+                                        }
+
+                                        event.saveEvent(snap.data.where((element) => element.name.toLowerCase() == widget.hospital.toLowerCase()).first.id);
+
                                         Navigator.of(context).pop();
                                       } : null,
                                           child: Text('Save')) : Container(),
@@ -460,7 +498,7 @@ class _EventFormState extends State<EventForm> {
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
-                                      child: Text('Created : ${formatDate(widget.event.created.toDate(),['dd',' ','M',' ','yyyy','at ','HH',':','nn'])}',
+                                      child: Text('Created : ${formatDate(widget.event.created.toDate(),['dd',' ','M',' ','yyyy','  at ','HH',':','nn'])}',
                                           style: TextStyle(fontSize: 12, color: Colors.black38),textAlign: TextAlign.left,),
                                     ),
                                   ],
@@ -494,6 +532,7 @@ class _EventFormState extends State<EventForm> {
   }
 
   void getDurationLists() {
+    durationList = ['1'];
     for(var i = 2; i< 5 ; i ++){
       if(availableTime.contains( startHour + i - 1 )){
         durationList.add(i.toString());
@@ -505,11 +544,12 @@ class _EventFormState extends State<EventForm> {
   }
 
   void getTimeList(AsyncSnapshot<List<Events>> snapshot, DateTime date) {
+    final event = Provider.of<EventProvider>(context);
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
     var eventOfDay = snapshot.data.where((element) => element.oT == OT
         && DateTime.parse(element.date).isAtSameMomentAs(date)
-        && element.eventId != widget?.event?.eventId
+        && element.eventId != event.eventId
         /*&& element.creatorId != Auth().currentUser.uid*/).toList();
     bookTimeAll.clear();
     availableTime.clear();
@@ -535,7 +575,7 @@ class _EventFormState extends State<EventForm> {
       defaultActionText: 'Delete',
     );
     if (didRequestDelete == true) {
-      event.removeEvent(event.eventId, snapshot.data.firstWhereOrNull((element) => element.name == widget.hospital.toLowerCase()).id);
+      event.removeEvent(event.eventId, snapshot.data.firstWhereOrNull((element) => element.name.toLowerCase() == widget.hospital.toLowerCase()).id);
       Navigator.of(context).pop();
     }
   }

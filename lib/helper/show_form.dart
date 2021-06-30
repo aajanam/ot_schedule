@@ -15,7 +15,7 @@ void showForm(BuildContext context, Events event, DateTime date, int hour, Strin
       context: context,
       builder: (BuildContext context){
         return Padding(
-          padding: MediaQuery.of(context).viewPadding,
+          padding: MediaQuery.of(context).viewInsets,
           child: EventForm(date: date, event: event, hour: hour, hospital: hospital, numbOt: numbOt, index: index,),
         );
       });

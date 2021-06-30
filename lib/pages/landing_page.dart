@@ -8,20 +8,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class LandingPage extends StatelessWidget {
 
-
-
-  /*Future getHosp() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    //Return String
-    String stringHosp = prefs.getString('hospital');
-      hosp = stringHosp;
-  }*/
-
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthBase>(context, listen: false);
-    //getHosp();
-    //final regUser = Provider.of<UserProvider>(context, listen: false);
 
     return StreamBuilder<User>(
         stream: auth.authStateChanges(),
@@ -31,7 +20,6 @@ class LandingPage extends StatelessWidget {
             if (user == null) {
               return SignInPage.create(context);
             }
-
             return HomeOne();
           } else {
             return Scaffold(

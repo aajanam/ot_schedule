@@ -58,7 +58,7 @@ class SignInPage extends StatelessWidget {
     return Container(decoration: BoxDecoration(
       gradient: LinearGradient(
         colors: [
-          Colors.blue.shade300,
+          Colors.blueGrey.shade300,
           Colors.white,
         ],
         end: Alignment.bottomRight,
@@ -99,24 +99,11 @@ class SignInPage extends StatelessWidget {
           'OT Schedule',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 36.0,
+            fontSize: 30.0,
             fontWeight: FontWeight.w600,
-            color: Colors.indigo.shade400,
+            color: Colors.indigo.shade800,
           ),
         ),
-        /*Padding(
-          padding:  EdgeInsets.only(top: 8.0),
-          child: Text(
-              'IBS RSUD Kota Tangerang',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueGrey,
-
-            ),
-          ),
-        ),*/
       ],
     );
   }

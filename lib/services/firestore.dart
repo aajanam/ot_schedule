@@ -27,36 +27,6 @@ class FireStore{
         .toList());
   }
 
-  /*Stream<List<Events>> getOT_1(String hosp) {
-    return _db
-        .collection('hospital/$hosp/events/')
-        .where('oT', isEqualTo: 'OT-1')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => Events.fromJson(doc.data()))
-        .toList());
-  }
-
-  Stream<List<Events>> getOT_2(String hosp) {
-    return _db
-        .collection('hospital/$hosp/events/')
-        .where('oT', isEqualTo: 'OT-2')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => Events.fromJson(doc.data()))
-        .toList());
-  }
-
-  Stream<List<Events>> getOT_3(String hosp) {
-    return _db
-        .collection('hospital/$hosp/events/')
-        .where('oT', isEqualTo: 'OT-3')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => Events.fromJson(doc.data()))
-        .toList());
-  }*/
-
   Future<void> setEvent(Events event, String eventId, String hospitalId){
     var options = SetOptions(merge:true);
     return _db

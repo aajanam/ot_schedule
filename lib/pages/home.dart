@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:admob_flutter/admob_flutter.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_week_view/flutter_week_view.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:otschedule/helper/show_form.dart';
 import 'package:otschedule/model/events.dart';
 import 'package:otschedule/model/hospital.dart';
@@ -40,8 +41,9 @@ class _HomeState extends State<Home> {
   DateTime _selectedDay;
   final ads = AdMobService();
   int numberOT;
-  int initialPage = 0;
-
+  int currentPage = 0;
+  String messageTitle = '';
+  String messageContent = '';
 
   int time = 6;
 
@@ -77,6 +79,13 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    OneSignal.shared.setNotificationWillShowInForegroundHandler((OSNotificationReceivedEvent event) {
+      event.complete(event.notification);
+    });
+
+    OneSignal.shared.setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+      // Will be called whenever a notification is opened/button pressed.
+    });
     if(widget.numOt != 0){
       numberOT = widget.numOt;
     }
@@ -103,7 +112,6 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _calendarController.dispose();
-   // _scrollController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -146,7 +154,7 @@ class _HomeState extends State<Home> {
           builder: (context, snap) {
             if(snap.hasData){
               return StreamBuilder<List<Events>>(
-                stream: event.events(snap.data.firstWhereOrNull((element) => element.name == hospital.toString().toLowerCase()).id),
+                stream: event.events(snap.data.firstWhereOrNull((element) => element.name.toLowerCase() == hospital.toString().toLowerCase()).id),
                 builder: (context, snapshot) {
                   if(snapshot.hasData){
                     final events = snapshot.data.toList();
@@ -216,7 +224,6 @@ class _HomeState extends State<Home> {
                                       padding: EdgeInsets.all(4),
                                       decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          // borderRadius: BorderRadius.circular(7),
                                           color: Colors.deepOrangeAccent),
 
                                       child: Text('${_groupedEvents.length}', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600), textAlign: TextAlign.center,)),
@@ -235,26 +242,37 @@ class _HomeState extends State<Home> {
                           ),
                         ),
                         Expanded(
-                            child: /*PageView(
-                              controller: _pageController,
-                              children: [
-                                for (var i=0; i< numberOT; i++)
-                                  buildDayView(date, snapshot.data.where((element) => element.oT == '${i+1}').toList(), context, now, 60, i,),
-                              ],
-                            )*/
-                          PageView.builder(
+                            child: PageView.builder(
                             controller: _pageController,
                               itemBuilder: (context, index){
                                 return buildDayView(date, snapshot.data.where((element) => element.oT == '${index+1}').toList(), context, now, 60, index,);
                               },
                           itemCount: numberOT,
                           onPageChanged: (index){
-                              print(index);
+                              setState(() {
+                                currentPage = index;
+                              });
                           },)
                         ),
-                        Container(
-                          height: 25,
-                        )
+                       Padding(
+                         padding: const EdgeInsets.symmetric(vertical: 4.0),
+                         child: Row(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             for(var i = 0; i < numberOT; i++)
+                               Padding(
+                                 padding: const EdgeInsets.only(right: 8.0),
+                                 child: Container(
+                                   height: 13, width: 13,
+                                   decoration: BoxDecoration(
+                                     shape: BoxShape.circle,
+                                     color: i == currentPage ? Colors.indigo : Colors.grey.shade400,
+                                   ),
+                                 ),
+                               ),
+                           ],
+                         ),
+                       ),
                       ],
                     );
                   }
@@ -282,8 +300,9 @@ class _HomeState extends State<Home> {
     return showDialog(context: context,
         builder: (context){
           return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             title: Text('Exit'),
-            content: Text('Lanjutkan keluar dari aplikasi'),
+            content: Text('Proceed to exit?'),
             actions: [
               TextButton(
                   onPressed: (){
@@ -306,7 +325,7 @@ class _HomeState extends State<Home> {
     final didRequestSignOut = await showAlertDialog(
       context,
       title: 'Logout',
-      content: 'Lanjutkan logout?',
+      content: 'Proceed logout?',
       cancelActionText: 'Cancel',
       defaultActionText: 'Logout',
     );
@@ -326,7 +345,6 @@ class _HomeState extends State<Home> {
     return
       DayView(
           initialTime: HourMinute(hour:6, minute: 50),
-
           hoursColumnStyle: HoursColumnStyle(width: columnWidth,),
           userZoomable: false,
           hoursColumnTimeBuilder: (style, hour) {
@@ -339,7 +357,6 @@ class _HomeState extends State<Home> {
                     splashColor: Colors.blueGrey.shade200,
                     onTap: ()
                       => showForm(context,null, _selectedDay, hour.hour, hospital, numberOT, index + 1),
-
                     child: Container(
                         decoration:
                         BoxDecoration(
@@ -413,7 +430,6 @@ class _HomeState extends State<Home> {
   bookTimeOT.clear();
     for (var i in eventDay){
      for(var x in i.bookTime){
-            //print(x);
       bookTimeOT.add(x);
       }
     }

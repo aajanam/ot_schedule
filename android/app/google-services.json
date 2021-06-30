@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "835764107918-6tqcue0bcsa2d5dmkm1pbln3pgru7mr9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aajanam.otschedule",
+            "certificate_hash": "6bdee937e66777e4dbd647dde052aa8ac9e44842"
+          }
+        },
+        {
+          "client_id": "835764107918-8ueko4v0h9c95dq6rmvvqfhj4ro5se8q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aajanam.otschedule",
+            "certificate_hash": "eb65b5d083469940f970cf07067b5f0ae5c7ca55"
+          }
+        },
+        {
           "client_id": "835764107918-hdt1bjv6jcl74e9r565nqpebscar3006.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -40,7 +56,8 @@
             }
           ]
         }
-      }
+      },
+      "admob_app_id": "ca-app-pub-7716978148792169~3665684510"
     }
   ],
   "configuration_version": "1"

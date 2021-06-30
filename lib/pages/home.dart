@@ -36,7 +36,6 @@ class _HomeState extends State<Home> {
   String oTRoom ;
   String hospital = '';
   bool isDoctor = false;
-  CalendarController _calendarController;
   PageController _pageController = PageController(viewportFraction: 0.94, initialPage: 0);
   DateTime _selectedDay;
   final ads = AdMobService();
@@ -44,12 +43,15 @@ class _HomeState extends State<Home> {
   int currentPage = 0;
   String messageTitle = '';
   String messageContent = '';
+  CalendarFormat format = CalendarFormat.week;
 
   int time = 6;
 
   List<int> bookTimeOT = [];
 
+
   Map<DateTime, List<Events>> _groupedEvents;
+
 
   _groupEvents(List<Events> events) {
     _groupedEvents = {};
@@ -60,6 +62,7 @@ class _HomeState extends State<Home> {
       _groupedEvents[date].add(event);
     });
   }
+
 
   Future loadNumOt() async {
     SharedPreferences _sharePref = await SharedPreferences.getInstance();
@@ -103,7 +106,6 @@ class _HomeState extends State<Home> {
       setState(() {
       });
     });
-    _calendarController = CalendarController();
     _selectedDay = DateTime.now();
 
     Admob.initialize();
@@ -111,9 +113,12 @@ class _HomeState extends State<Home> {
   }
   @override
   void dispose() {
-    _calendarController.dispose();
     _pageController.dispose();
     super.dispose();
+  }
+
+  List<Events> loadEvent(DateTime date){
+    return _groupedEvents[date] ?? [];
   }
 
 
@@ -128,6 +133,7 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromRGBO(250, 250, 250, 1),
 
         actions: [
           IconButton(onPressed: () =>_confirmSignOut(context), icon: Icon(Icons.logout, color: Colors.black54,))],
@@ -142,7 +148,9 @@ class _HomeState extends State<Home> {
                 child: CircleAvatar(radius: 20, backgroundImage: NetworkImage(Auth().currentUser.photoURL),)),
             contentPadding: EdgeInsets.only(top: 8, left: 5 , right: 0, bottom: 0),
             title:Text(isDoctor == true ? 'Dr.${Auth().currentUser.displayName}': '${Auth().currentUser.displayName}', style: TextStyle(fontSize: 15),),
-            subtitle: Text(hospital, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),),
+            subtitle: Transform.translate(
+                offset: Offset(0,-3),
+                child: Text(hospital, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),)),
           ),
         ),
       ),
@@ -159,77 +167,95 @@ class _HomeState extends State<Home> {
                   if(snapshot.hasData){
                     final events = snapshot.data.toList();
                     _groupEvents(events);
+                    print(_groupedEvents[_selectedDay.add(Duration(hours: 12))]);
+                    print(_selectedDay.add(Duration(hours: 12)));
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TableCalendar(
-                          rowHeight: 55,
-                          calendarStyle: CalendarStyle(
-                              cellMargin: EdgeInsets.zero,
-                              weekdayStyle: TextStyle(fontSize: 15),
-                              weekendStyle: TextStyle(fontSize: 15, color: Colors.red),
-                              holidayStyle: TextStyle(fontSize: 15, color: Colors.red)
-                          ),
-                          headerStyle: HeaderStyle(
-                              titleTextStyle: TextStyle(color: Colors.indigo.shade800, fontSize: 17),
-                              leftChevronIcon: Icon(Icons.chevron_left, color: Colors.black87,),
-                              rightChevronIcon: Icon(Icons.chevron_right, color: Colors.black87,),
-                              formatButtonShowsNext: false,
-                              formatButtonTextStyle: TextStyle(color: Colors.black87, fontSize: 13),
-                              formatButtonDecoration: BoxDecoration( color: Colors.white10,borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.black87)),
-                              formatButtonPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                              headerPadding: EdgeInsets.zero),
-                          calendarController: _calendarController,
-                          initialCalendarFormat: CalendarFormat.twoWeeks,
-                          events: _groupedEvents,
-
-                          weekendDays: [DateTime.sunday],
-                          onDaySelected: (DateTime day,_,__){
-                            setState(() {
-                              _selectedDay = _calendarController.selectedDay;
-                            });
-                          },
-                          initialSelectedDay: DateTime.now(),
-                          builders: CalendarBuilders(
-                            selectedDayBuilder: (context, date, events) => Container(
-                                margin: const EdgeInsets.all(8.0),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.indigo.shade400,
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: Text(
-                                  date.day.toString(),
-                                  style: TextStyle(color: Colors.white,),
-                                )),
-                            todayDayBuilder: (context, date, events) => Container(
-                                margin: const EdgeInsets.all(8.0),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.indigo.shade100.withOpacity(0.4),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all()),
-                                child: Text(
-                                  date.day.toString(),
-                                  style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.w600),
-                                )),
-                            markersBuilder: (_, date, _groupedEvents , __) {
-                              return [
-                                Positioned(
-                                  top: -1,
-                                  right: 0,
-                                  child: Container(
-                                      constraints: BoxConstraints(
-                                        minWidth: 14,
-                                        minHeight: 14,),
-                                      padding: EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.deepOrangeAccent),
-
-                                      child: Text('${_groupedEvents.length}', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600), textAlign: TextAlign.center,)),
-                                )
-                              ];
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: TableCalendar(
+                            daysOfWeekHeight: 20,
+                            daysOfWeekStyle: DaysOfWeekStyle(
+                              weekendStyle: TextStyle(color: Colors.red)
+                            ),
+                            calendarStyle: CalendarStyle(
+                              weekendTextStyle: TextStyle(color: Colors.red)
+                            ),
+                            headerStyle: HeaderStyle(
+                                titleTextStyle: TextStyle(color: Colors.indigo.shade800, fontSize: 17),
+                                leftChevronIcon: Icon(Icons.chevron_left, color: Colors.black87,),
+                                rightChevronIcon: Icon(Icons.chevron_right, color: Colors.black87,),
+                                formatButtonShowsNext: false,
+                                formatButtonTextStyle: TextStyle(color: Colors.black87, fontSize: 13),
+                                formatButtonDecoration: BoxDecoration( color: Colors.white10,borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.black87)),
+                                formatButtonPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                                headerPadding: EdgeInsets.zero),
+                            selectedDayPredicate: (day) {
+                              return isSameDay(_selectedDay, day);
                             },
+                            calendarFormat: format,
+                            onFormatChanged: (CalendarFormat _format){
+                              setState(() {
+                                format = _format;
+                              });
+                            },
+                            weekendDays: [DateTime.sunday],
+                            onDaySelected: (selectedDay, focusedDay) {
+                              setState(() {
+                                _selectedDay = selectedDay;
+                                format = CalendarFormat.week;
+                              });
+                            },
+                            eventLoader: (date){
+                              return loadEvent(date.add(Duration(hours:12)));
+                            } ,
+
+                            firstDay: DateTime.utc(2010, 10, 16),
+                            lastDay: DateTime.utc(2030, 3, 14),
+                            focusedDay: _selectedDay,
+                            calendarBuilders: CalendarBuilders(
+                              selectedBuilder: (context, date, events) => Container(
+                                  margin: const EdgeInsets.all(8.0),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                      color: Colors.indigo.shade400,
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: Text(
+                                    date.day.toString(),
+                                    style: TextStyle(color: Colors.white,),
+                                  )),
+                              todayBuilder: (context, date, events) => Container(
+                                  margin: const EdgeInsets.all(8.0),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                      color: Colors.indigo.shade100.withOpacity(0.4),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all()),
+                                  child: Text(
+                                    date.day.toString(),
+                                    style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.w600),
+                                  )),
+                              markerBuilder: (_, date,__,) {
+                                  if (loadEvent(date.add(Duration(hours:12))).isNotEmpty) {
+                                    return
+                                      Positioned(
+                                        top: 0,
+                                        right: 5,
+                                        child: Container(
+                                            constraints: BoxConstraints(
+                                              minWidth: 14,
+                                              minHeight: 14,),
+                                            padding: EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.deepOrangeAccent),
+
+                                            child: Text('${loadEvent(date.add(Duration(hours:12))).length}', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600), textAlign: TextAlign.center,)),
+                                      );
+                                  } return null;
+                              },
+                            ),
                           ),
                         ),
                         //AD Here

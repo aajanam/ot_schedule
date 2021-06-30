@@ -1,9 +1,8 @@
 import 'dart:ui';
-
-import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flutter_week_view/flutter_week_view.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:otschedule/model/events.dart';
@@ -25,7 +24,7 @@ class EventForm extends StatefulWidget {
   final Events event;
   final DateTime date;
   final int hour;
-  List notifGroup = [];
+  final List notifGroup = [];
 
   EventForm({this.event, this.date, this.hour, this.hospital, this.numbOt, this.index});
   @override
@@ -49,8 +48,8 @@ class _EventFormState extends State<EventForm> {
   List<String> suggestions = [];
   String dept = '';
 
+
   final _formKey = GlobalKey<FormState>();
-  GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   TextEditingController dateController = TextEditingController();
   TextEditingController doctorController = TextEditingController();
@@ -331,52 +330,44 @@ class _EventFormState extends State<EventForm> {
                                   ],
                                 ),
                                 SizedBox(height: 20,),
-                                AutoCompleteTextField(
-
-                                  textCapitalization: TextCapitalization.words,
-                                    decoration:
-                                    InputDecoration(
-                                      enabled: youCanEdit || drCanEdit ? true : false,
-                                      contentPadding: EdgeInsets.zero,
-                                      icon:Icon(Icons.person_outline, color: Colors.lightBlue.shade700),
-                                      labelText: 'Doctor\'s name',
-                                      hintStyle: TextStyle(color: Colors.black38),),
-                                    clearOnSubmit: false,
-                                    controller: doctorController,
-                                    itemSubmitted: (item){
-                                      doctorController.text = item;
-                                      event.changeDoctorName = item;
-                                    },
-                                  textChanged: (value){
+                                TypeAheadField(
+                                  noItemsFoundBuilder: (BuildContext context) =>
+                                      ListTile(
+                                        title: Text('No Doctor\'s name found', style: TextStyle(color: Colors.black54),)),
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    onChanged: (val){
                                       setState(() {
-                                        event.changeDoctorName = value;
+                                        event.changeDoctorName = val;
                                       });
+                                    },
+                                    textCapitalization: TextCapitalization.words,
+                                    controller: doctorController,
+                                      decoration: InputDecoration(
+                                        enabled: youCanEdit || drCanEdit ? true : false,
+                                        contentPadding: EdgeInsets.zero,
+                                        icon:Icon(Icons.person_outline, color: Colors.lightBlue.shade700),
+                                        labelText: 'Doctor\'s name',
+                                        hintStyle: TextStyle(color: Colors.black38),
+                                      )
+                                  ),
+                                  suggestionsCallback: (pattern)  {
+                                    if(doctorController.text == ''){
+                                      return Iterable.empty();
+                                    }
+                                    return  suggestions.where((element) => element.toLowerCase().startsWith(pattern.toLowerCase()));
                                   },
-                                    key: key,
-                                    suggestions: suggestions,
-                                    itemSorter: (a, b){
-                                      return a.compareTo(b);
-                                    },
-                                    itemFilter: (item, query){
-                                      return item.toString().toLowerCase().startsWith(query.toLowerCase());
-                                    },
-                                    itemBuilder: (context, item){
-                                      return SingleChildScrollView(
-                                        child: Container(
-                                          color: Colors.lightBlueAccent.shade100.withOpacity(0.1),
-                                          child: Row(
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10),
-                                                child: Text(item,
-                                                  style: TextStyle(fontSize: 17, color: Colors.black54, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600),),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                textInputAction: TextInputAction.next,),
+                                  itemBuilder: (context, suggestion) {
+                                    return ListTile(
+                                      title: Text(suggestion),
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) {
+                                    setState(() {
+                                      doctorController.text = suggestion;
+                                      event.changeDoctorName = suggestion;
+                                    });
+                                  },
+                                ),
                                 SizedBox(height: 18,),
                                 TextFormField(
                                   maxLines: null,

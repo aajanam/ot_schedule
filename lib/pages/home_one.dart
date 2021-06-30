@@ -1,4 +1,3 @@
-import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -59,7 +58,6 @@ class _HomeOneState extends State<HomeOne> {
   }
 
   final _formKey = GlobalKey<FormState>();
-  GlobalKey<AutoCompleteTextFieldState<String>> key = new GlobalKey();
 
   void saveData() async {
     SharedPreferences _sharePref = await SharedPreferences.getInstance();
@@ -213,6 +211,7 @@ class _HomeOneState extends State<HomeOne> {
                     )
                   ],
                   appBar: AppBar(brightness: Brightness.light, elevation: 0,
+                    backgroundColor: Color.fromRGBO(250, 250, 250, 1),
                     automaticallyImplyLeading: true,
                     leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: _onPress,),),
                   body: WillPopScope(
@@ -351,61 +350,35 @@ class _HomeOneState extends State<HomeOne> {
                                     ),
                                   ),
                                 ),
-                                AutoCompleteTextField(
-                                  textChanged: (value){
-                                    setState(() {
-                                    });
-                                  },
-
-                                  itemSubmitted: (item){
-                                    setState(() {
-                                      _departmentController.text = item;
-                                      user.department = item;
-                                    });
-                                  },
-                                  itemSorter: (a, b){
-                                    return a.compareTo(b);
-                                  },
-                                  itemFilter: (item, query){
-                                    return item.toString().toLowerCase().startsWith(query.toLowerCase());
-                                  },
-                                  itemBuilder: (context, item){
-                                    return SingleChildScrollView(
-                                      child: Container(
-                                        color: Colors.lightBlueAccent.shade100.withOpacity(0.1),
-                                        child: Row(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10),
-                                              child: Text(item,
-                                                style: TextStyle(fontSize: 17, color: Colors.black54, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600),),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  textInputAction: TextInputAction.done,
-                                  clearOnSubmit: false,
-                                  suggestions: departmentList,
-                                  key: key,
-                                  textCapitalization: TextCapitalization.words,
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                                  controller: _departmentController,
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    labelText: 'Department',
-                                    labelStyle:TextStyle(fontSize: 14, color: Colors.black38) ,
-                                    hintStyle: TextStyle(fontSize: 14, color: Colors.black38),
-                                    alignLabelWithHint: true,
-                                    //contentPadding: EdgeInsets.only(left: 20, top: 10, bottom: 0 ),
-                                    focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.cyan), borderRadius: BorderRadius.circular(5)
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blueGrey.shade200,), borderRadius: BorderRadius.circular(5)
-                                    ),),
+                            DropdownButtonFormField(
+                              decoration: InputDecoration(
+                                isDense: true,
+                                labelText: 'Department',
+                                labelStyle:TextStyle(fontSize: 14, color: Colors.black38) ,
+                                hintStyle: TextStyle(fontSize: 14, color: Colors.black38),
+                                alignLabelWithHint: true,
+                                //contentPadding: EdgeInsets.only(left: 20, top: 10, bottom: 0 ),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.cyan), borderRadius: BorderRadius.circular(5)
                                 ),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.blueGrey.shade200,), borderRadius: BorderRadius.circular(5)
+                                ),),
+                              value: user.department,
+                              items: departmentList.map((value) {
+                                return DropdownMenuItem(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  _departmentController.text = val;
+                                  user.department = val;
+                                });
+                              },
+                            ),
+
                                 Row
                                   (mainAxisAlignment: MainAxisAlignment.end,
                                   children: [

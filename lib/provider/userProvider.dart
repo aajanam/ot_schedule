@@ -1,6 +1,4 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:otschedule/model/users.dart';
 import 'package:otschedule/services/auth.dart';
 import 'package:otschedule/services/firestore.dart';

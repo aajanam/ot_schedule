@@ -15,10 +15,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   OneSignal.shared.setAppId('63ca8da0-76db-41e2-97da-9aecf35db12b');
   await Firebase.initializeApp();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown
-  ]);
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   Admob.initialize();
   runApp(MyApp());
 }
@@ -29,10 +27,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (context) => UserProvider()),
-        ChangeNotifierProvider(
-            create: (context) => HospitalProvider()),
+        ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider(create: (context) => HospitalProvider()),
         ChangeNotifierProvider(
           create: (context) => EventProvider(),
         ),
@@ -43,13 +39,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'OT Schedule',
-        theme: ThemeData(
-          primaryColor: Colors.white,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
+        theme: ThemeData.dark(),
         home: LandingPage(),
       ),
     );
   }
 }
-

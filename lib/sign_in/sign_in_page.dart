@@ -58,8 +58,8 @@ class SignInPage extends StatelessWidget {
     return Container(decoration: BoxDecoration(
       gradient: LinearGradient(
         colors: [
-          Colors.blueGrey.shade300,
-          Colors.white,
+          Colors.blueGrey.shade900,
+          Color.fromRGBO(41, 41, 41, 1),
         ],
         end: Alignment.bottomRight,
         begin: Alignment.topCenter
@@ -101,7 +101,7 @@ class SignInPage extends StatelessWidget {
           style: TextStyle(
             fontSize: 30.0,
             fontWeight: FontWeight.w600,
-            color: Colors.indigo.shade800,
+            color: Colors.white,
           ),
         ),
       ],

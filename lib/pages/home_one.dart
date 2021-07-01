@@ -121,9 +121,7 @@ class _HomeOneState extends State<HomeOne> {
       numOt= value;
       setState(() {});
     });
-
-
-    // TODO: implement initState
+    departmentList.sort((a,b) => a.toString().compareTo(b.toString()));
     super.initState();
   }
   @override
@@ -210,8 +208,8 @@ class _HomeOneState extends State<HomeOne> {
                           label: Text(' Contact Admin to Register Hospital')),
                     )
                   ],
-                  appBar: AppBar(brightness: Brightness.light, elevation: 0,
-                    backgroundColor: Color.fromRGBO(250, 250, 250, 1),
+                  appBar: AppBar(brightness: Brightness.dark, elevation: 0,
+                    backgroundColor: Color.fromRGBO(48, 48, 48, 1),
                     automaticallyImplyLeading: true,
                     leading: IconButton(icon: Icon(Icons.arrow_back), onPressed: _onPress,),),
                   body: WillPopScope(
@@ -231,6 +229,7 @@ class _HomeOneState extends State<HomeOne> {
                                   child: Center(child: Text('Hi ${Auth().currentUser.displayName}', style: TextStyle(fontSize: 20),)),
                                 ),
                                 TextFormField(
+                                  cursorColor: Colors.white,
                                   textCapitalization: TextCapitalization.words,
                                   textAlignVertical: TextAlignVertical.center,
                                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -261,12 +260,12 @@ class _HomeOneState extends State<HomeOne> {
                                     isDense: true,
                                     hintText: 'Hospital',
                                     labelText: 'Hospital',
-                                    labelStyle:TextStyle(fontSize: 14, color: Colors.black38) ,
-                                    hintStyle: TextStyle(fontSize: 14, color: Colors.black38),
+                                    labelStyle:TextStyle(fontSize: 14, color: Colors.grey.shade400) ,
+                                    hintStyle: TextStyle(fontSize: 14, color: Colors.white38),
                                     alignLabelWithHint: true,
                                     //contentPadding: EdgeInsets.only(left: 20, top:10, bottom: 3 ),
                                     focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.cyan), borderRadius: BorderRadius.circular(5)
+                                        borderSide: BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(5)
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(color: Colors.blueGrey.shade200,), borderRadius: BorderRadius.circular(5)
@@ -274,6 +273,7 @@ class _HomeOneState extends State<HomeOne> {
                                 ),
                                 SizedBox(height: 20,),
                                 TextFormField(
+                                  cursorColor: Colors.white,
                                   // enabled: regHospital == true ? true : false,
                                   textAlignVertical: TextAlignVertical.center,
                                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -314,14 +314,14 @@ class _HomeOneState extends State<HomeOne> {
                                     isDense: true,
                                     hintText: 'Employee ID',
                                     labelText: 'Employee ID',
-                                    labelStyle:TextStyle(fontSize: 14, color: Colors.black38) ,
-                                    hintStyle: TextStyle(fontSize: 14, color: Colors.black38),
+                                    labelStyle:TextStyle(fontSize: 14, color: Colors.grey.shade400) ,
+                                    hintStyle: TextStyle(fontSize: 14, color: Colors.white38),
                                     alignLabelWithHint: true,
                                     disabledBorder:  OutlineInputBorder(
                                         borderSide: BorderSide(color: Colors.blueGrey.shade100,), borderRadius: BorderRadius.circular(5)
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.cyan), borderRadius: BorderRadius.circular(5)
+                                        borderSide: BorderSide(color: Colors.blue), borderRadius: BorderRadius.circular(5)
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(color: Colors.blueGrey.shade200,), borderRadius: BorderRadius.circular(5)
@@ -354,8 +354,8 @@ class _HomeOneState extends State<HomeOne> {
                               decoration: InputDecoration(
                                 isDense: true,
                                 labelText: 'Department',
-                                labelStyle:TextStyle(fontSize: 14, color: Colors.black38) ,
-                                hintStyle: TextStyle(fontSize: 14, color: Colors.black38),
+                                labelStyle:TextStyle(fontSize: 14, color: Colors.grey.shade400) ,
+                                hintStyle: TextStyle(fontSize: 14, color: Colors.white38),
                                 alignLabelWithHint: true,
                                 //contentPadding: EdgeInsets.only(left: 20, top: 10, bottom: 0 ),
                                 focusedBorder: OutlineInputBorder(

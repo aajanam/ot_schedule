@@ -176,13 +176,17 @@ class _EventFormState extends State<EventForm> {
                                             }
                                           } : null,
                                           decoration: InputDecoration(
-                                              labelStyle: TextStyle(color:Colors.black54),
+                                            //contentPadding: EdgeInsets.only(bottom:10),
+                                            alignLabelWithHint: true,
+                                              labelStyle: TextStyle(color:Colors.grey),
                                               labelText: 'Date',
-                                              suffixIcon:  Icon(Icons.arrow_drop_down, color:youCanEdit || drCanEdit ? Colors.black : Colors.transparent,),
-                                              icon: Icon(Icons.date_range_outlined, color: widget.event != null ? Colors.lightBlue.shade700 : Colors.black54),
+                                              suffixIcon:  Padding(
+                                                padding: const EdgeInsets.only(top: 18.0),
+                                                child: Icon(Icons.arrow_drop_down, color:youCanEdit || drCanEdit ? Colors.white70 : Colors.transparent,),
+                                              ),
+                                              icon: Icon(Icons.date_range_outlined, color: youCanEdit || drCanEdit ? Colors.lightBlue.shade700 : Colors.white38),
                                               border: InputBorder.none
                                           ),
-                                          expands: false,
                                           readOnly: true,
                                           controller: dateController,
                                       ),
@@ -208,7 +212,7 @@ class _EventFormState extends State<EventForm> {
                                           value: OT,
                                           decoration: InputDecoration(
                                               border: InputBorder.none,
-                                              contentPadding: EdgeInsets.zero,
+                                              //contentPadding: EdgeInsets.only(top:5),
                                               icon:Icon(Icons.room_outlined, color: Colors.lightBlue.shade700),
                                               labelText: 'OT Room'),
                                         ) : TextFormField(
@@ -224,7 +228,7 @@ class _EventFormState extends State<EventForm> {
 
                                   ],
                                 ),
-                                SizedBox(height: 12,),
+                                SizedBox(height: 10,),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   mainAxisSize: MainAxisSize.min,
@@ -234,7 +238,7 @@ class _EventFormState extends State<EventForm> {
                                           child:
                                        Row(
                                          children: [
-                                           Icon(Icons.timer, color: Colors.cyan.shade700,),
+                                           Icon(Icons.timer, color: Colors.lightBlue.shade700,),
                                            SizedBox(width: 17,),
                                            Expanded(
                                              child: Column(
@@ -248,7 +252,7 @@ class _EventFormState extends State<EventForm> {
                                                      style: TextStyle(
                                                          height: 0.5,
                                                          fontSize: 12,
-                                                         color: Colors.black54),
+                                                         color: Colors.white54),
                                                    ),
                                                  ),
 
@@ -259,7 +263,7 @@ class _EventFormState extends State<EventForm> {
                                                      hint: Text(startHour != null && startHour >= 10 ? '$startHour:00'
                                                          : startHour != null && startHour < 10 ? '0$startHour:00'
                                                          : '',
-                                                         style: TextStyle( color: availableTime.contains(startHour) ? Colors.black : Colors.pink)),
+                                                         style: TextStyle( color: availableTime.contains(startHour) ? Colors.white : Colors.yellowAccent)),
 
                                                      items: youCanEdit || drCanEdit ?
                                                      availableTime.map(
@@ -333,8 +337,9 @@ class _EventFormState extends State<EventForm> {
                                 TypeAheadField(
                                   noItemsFoundBuilder: (BuildContext context) =>
                                       ListTile(
-                                        title: Text('No Doctor\'s name found', style: TextStyle(color: Colors.black54),)),
+                                        title: Text('No Doctor\'s name found', style: TextStyle(color: Colors.white54),)),
                                   textFieldConfiguration: TextFieldConfiguration(
+                                    cursorColor: Colors.white,
                                     onChanged: (val){
                                       setState(() {
                                         event.changeDoctorName = val;
@@ -347,7 +352,8 @@ class _EventFormState extends State<EventForm> {
                                         contentPadding: EdgeInsets.zero,
                                         icon:Icon(Icons.person_outline, color: Colors.lightBlue.shade700),
                                         labelText: 'Doctor\'s name',
-                                        hintStyle: TextStyle(color: Colors.black38),
+                                        labelStyle: TextStyle(color: Colors.grey.shade400),
+                                        hintStyle: TextStyle(color: Colors.white38),
                                       )
                                   ),
                                   suggestionsCallback: (pattern)  {
@@ -370,6 +376,7 @@ class _EventFormState extends State<EventForm> {
                                 ),
                                 SizedBox(height: 18,),
                                 TextFormField(
+                                  cursorColor: Colors.white,
                                   maxLines: null,
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit || drCanEdit ? true : false,
@@ -378,7 +385,8 @@ class _EventFormState extends State<EventForm> {
                                       contentPadding: EdgeInsets.zero,
                                       icon:Icon(Icons.medical_services_outlined, color: Colors.lightBlue.shade700),
                                       labelText: 'Procedure',
-                                      hintStyle: TextStyle(color: Colors.black38)),
+                                    labelStyle: TextStyle(color: Colors.grey.shade400),
+                                    hintStyle: TextStyle(color: Colors.white38),),
                                   initialValue: event.procedure,
                                   onChanged: (val) =>
                                   event.changeProcedure = val,
@@ -386,6 +394,7 @@ class _EventFormState extends State<EventForm> {
                                 ),
                                 SizedBox(height: 18,),
                                 TextFormField(
+                                  cursorColor: Colors.white,
                                   maxLines: null,
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit || drCanEdit ? true : false,
@@ -394,7 +403,8 @@ class _EventFormState extends State<EventForm> {
                                       contentPadding: EdgeInsets.zero,
                                       icon:Icon(Icons.analytics_outlined, color: Colors.lightBlue.shade700),
                                       labelText: 'Diagnose',
-                                      hintStyle: TextStyle(color: Colors.black38)),
+                                    labelStyle: TextStyle(color: Colors.grey.shade400),
+                                    hintStyle: TextStyle(color: Colors.white38),),
                                   initialValue: event.diagnose,
                                   onChanged: (val) =>
                                   event.changeDiagnose = val,
@@ -402,6 +412,7 @@ class _EventFormState extends State<EventForm> {
                                 ),
                                 SizedBox(height: 18,),
                                 TextFormField(
+                                  cursorColor: Colors.white,
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit  || drCanEdit? true : false,
                                   maxLines: null,
@@ -409,7 +420,8 @@ class _EventFormState extends State<EventForm> {
                                   InputDecoration(icon:Icon(Icons.sick_outlined, color: Colors.lightBlue.shade700),
                                       contentPadding: EdgeInsets.zero,
                                       labelText: 'Patient\'s description / Request description',
-                                      hintStyle: TextStyle(color: Colors.black38)),
+                                    labelStyle: TextStyle(color: Colors.grey.shade400),
+                                    hintStyle: TextStyle(color: Colors.white38),),
                                   initialValue: event.patientName,
                                   onChanged: (val) =>
                                   event.changePatientName = val,
@@ -490,7 +502,7 @@ class _EventFormState extends State<EventForm> {
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
                                       child: Text('Created : ${formatDate(widget.event.created.toDate(),['dd',' ','M',' ','yyyy','  at ','HH',':','nn'])}',
-                                          style: TextStyle(fontSize: 12, color: Colors.black38),textAlign: TextAlign.left,),
+                                          style: TextStyle(fontSize: 12, color: Colors.white54),textAlign: TextAlign.left,),
                                     ),
                                   ],
                                 )

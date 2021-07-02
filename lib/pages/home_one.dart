@@ -24,7 +24,6 @@ class HomeOne extends StatefulWidget {
 class _HomeOneState extends State<HomeOne> {
 
   TextEditingController _hospitalController = TextEditingController(text: '');
-  TextEditingController _departmentController = TextEditingController(text: '');
   TextEditingController _nikController = TextEditingController(text: '');
   bool isDoctor = false;
   String hospital = '';
@@ -35,6 +34,7 @@ class _HomeOneState extends State<HomeOne> {
   String prePass = '';
   List memberOfHosp = [];
   int numOt = 1;
+  String currentDept = '';
   List departmentList = [
     'Anesthesiology',
     'General Surgery',
@@ -63,7 +63,7 @@ class _HomeOneState extends State<HomeOne> {
     SharedPreferences _sharePref = await SharedPreferences.getInstance();
     _sharePref.setString('hospital',_hospitalController.text);
     _sharePref.setBool('isDoctor', isDoctor);
-    _sharePref.setString('department',_departmentController.text);
+    _sharePref.setString('department',currentDept);
     _sharePref.setString('nik', _nikController.text);
     _sharePref.setInt('numOt', numOt);
   }
@@ -107,7 +107,7 @@ class _HomeOneState extends State<HomeOne> {
       });
     });
     loadDepartment().then((value){
-      _departmentController.text = value;
+      currentDept = value;
       setState(() {});
     });
     loadNIK().then((value){
@@ -127,9 +127,7 @@ class _HomeOneState extends State<HomeOne> {
   @override
   void dispose() {
     _nikController.dispose();
-    _departmentController.dispose();
     _hospitalController.dispose();
-    // TODO: implement dispose
     super.dispose();
   }
 
@@ -143,7 +141,6 @@ class _HomeOneState extends State<HomeOne> {
 
     final user = Provider.of<UserProvider>(context);
     final hospitals = Provider.of<HospitalProvider>(context);
-    print(deviceToken);
 
     return StreamBuilder<List<RegUser>>(
         stream: user.users,
@@ -225,7 +222,7 @@ class _HomeOneState extends State<HomeOne> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.only(bottom:30.0),
+                                  padding: const EdgeInsets.only(bottom:60.0),
                                   child: Center(child: Text('Hi ${Auth().currentUser.displayName}', style: TextStyle(fontSize: 20),)),
                                 ),
                                 TextFormField(
@@ -364,7 +361,7 @@ class _HomeOneState extends State<HomeOne> {
                                 enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(color: Colors.blueGrey.shade200,), borderRadius: BorderRadius.circular(5)
                                 ),),
-                              value: user.department,
+                              value: departmentList.contains(currentDept) ? currentDept : user.department,
                               items: departmentList.map((value) {
                                 return DropdownMenuItem(
                                   value: value,
@@ -373,7 +370,7 @@ class _HomeOneState extends State<HomeOne> {
                               }).toList(),
                               onChanged: (val) {
                                 setState(() {
-                                  _departmentController.text = val;
+                                  currentDept = val;
                                   user.department = val;
                                 });
                               },
@@ -385,7 +382,7 @@ class _HomeOneState extends State<HomeOne> {
 
                                     Padding(padding: EdgeInsets.only(top: 50),
                                       child: ElevatedButton(onPressed:
-                                      regHospital == true && isIn == true && departmentList.contains(_departmentController.text)? (){
+                                      regHospital == true && isIn == true && departmentList.contains(currentDept)? (){
 
                                         isButtonPressed = true;
 
@@ -394,7 +391,7 @@ class _HomeOneState extends State<HomeOne> {
                                             user.deviceToken = deviceToken;
                                             user.workPlace = _hospitalController.text;
                                             user.isDoctor = isDoctor;
-                                            user.department = _departmentController.text;
+                                            user.department = currentDept;
                                           });
                                           saveData();
 

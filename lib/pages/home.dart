@@ -169,99 +169,101 @@ class _HomeState extends State<Home> {
                   if(snapshot.hasData){
                     final events = snapshot.data.toList();
                     _groupEvents(events);
-                    print(_groupedEvents[_selectedDay.add(Duration(hours: 12))]);
-                    print(_selectedDay.add(Duration(hours: 12)));
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TableCalendar(
-                          daysOfWeekHeight: 20,
-                          daysOfWeekStyle: DaysOfWeekStyle(
-                            weekendStyle: TextStyle(color: Colors.pinkAccent),
-                            weekdayStyle: TextStyle(color: Color.fromRGBO(227, 227, 227, 1)),
-                          ),
-                          calendarStyle: CalendarStyle(
-                            outsideTextStyle: TextStyle(color:Colors.white38),
-                            weekendTextStyle: TextStyle(color: Colors.pinkAccent)
-                          ),
-                          headerStyle: HeaderStyle(
-                              titleTextStyle: TextStyle(color: Color.fromRGBO(1, 254, 0, 1), fontSize: 17),
-                              leftChevronIcon: Icon(Icons.chevron_left, color: Color.fromRGBO(227, 227, 227, 1),),
-                              rightChevronIcon: Icon(Icons.chevron_right, color: Color.fromRGBO(227, 227, 227, 1),),
-                              formatButtonShowsNext: false,
-                              formatButtonTextStyle: TextStyle(color: Colors.black87, fontSize: 13),
-                              formatButtonDecoration: BoxDecoration( color: Color.fromRGBO(227, 227, 227, 1),borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.black87)),
-                              formatButtonPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                              headerPadding: EdgeInsets.zero),
-                          selectedDayPredicate: (day) {
-                            return isSameDay(_selectedDay, day);
-                          },
-                          calendarFormat: format,
-                          onFormatChanged: (CalendarFormat _format){
-                            setState(() {
-                              format = _format;
-                            });
-                          },
-                          weekendDays: [DateTime.sunday],
-                          onDaySelected: (selectedDay, focusedDay) {
-                            setState(() {
-                              _selectedDay = selectedDay;
-                              format = CalendarFormat.week;
-                            });
-                          },
-                          eventLoader: (date){
-                            return loadEvent(date.add(Duration(hours:12)));
-                          } ,
-
-                          firstDay: DateTime.utc(2010, 10, 16),
-                          lastDay: DateTime.utc(2030, 3, 14),
-                          focusedDay: _selectedDay,
-                          calendarBuilders: CalendarBuilders(
-                            selectedBuilder: (context, date, events) => Container(
-                                margin: const EdgeInsets.all(8.0),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.indigo.shade400,
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: Text(
-                                  date.day.toString(),
-                                  style: TextStyle(color: Colors.white,),
-                                )),
-                            todayBuilder: (context, date, events) => Container(
-                                margin: const EdgeInsets.all(8.0),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                    color: Colors.indigo.shade100.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Colors.white70)),
-                                child: Text(
-                                  date.day.toString(),
-                                  style: TextStyle(color: Colors.indigo.shade100.withOpacity(0.9), fontWeight: FontWeight.w600),
-                                )),
-                            markerBuilder: (_, date,__,) {
-                                if (loadEvent(date.add(Duration(hours:12))).isNotEmpty) {
-                                  return
-                                    Positioned(
-                                      top: 0,
-                                      right: 1,
-                                      child: Container(
-                                          constraints: BoxConstraints(
-                                            minWidth: 14,
-                                            minHeight: 14,),
-                                          padding: EdgeInsets.all(4),
-                                          decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.deepOrangeAccent),
-
-                                          child: Text('${loadEvent(date.add(Duration(hours:12))).length}', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600), textAlign: TextAlign.center,)),
-                                    );
-                                } return null;
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: TableCalendar(
+                            daysOfWeekHeight: 20,
+                            daysOfWeekStyle: DaysOfWeekStyle(
+                              weekendStyle: TextStyle(color: Colors.pinkAccent),
+                              weekdayStyle: TextStyle(color: Color.fromRGBO(227, 227, 227, 1)),
+                            ),
+                            calendarStyle: CalendarStyle(
+                              outsideTextStyle: TextStyle(color:Colors.white38),
+                              weekendTextStyle: TextStyle(color: Colors.pinkAccent)
+                            ),
+                            headerStyle: HeaderStyle(
+                                titleTextStyle: TextStyle(color: Color.fromRGBO(1, 254, 0, 1), fontSize: 17),
+                                leftChevronIcon: Icon(Icons.chevron_left, color: Color.fromRGBO(227, 227, 227, 1),),
+                                rightChevronIcon: Icon(Icons.chevron_right, color: Color.fromRGBO(227, 227, 227, 1),),
+                                formatButtonShowsNext: false,
+                                formatButtonTextStyle: TextStyle(color: Colors.black87, fontSize: 13),
+                                formatButtonDecoration: BoxDecoration( color: Color.fromRGBO(227, 227, 227, 1),borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.black87)),
+                                formatButtonPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                                headerPadding: EdgeInsets.zero),
+                            selectedDayPredicate: (day) {
+                              return isSameDay(_selectedDay, day);
                             },
+                            calendarFormat: format,
+                            onFormatChanged: (CalendarFormat _format){
+                              setState(() {
+                                format = _format;
+                              });
+                            },
+                            weekendDays: [DateTime.sunday],
+                            onDaySelected: (selectedDay, focusedDay) {
+                              setState(() {
+                                _selectedDay = selectedDay;
+                                format = CalendarFormat.week;
+                              });
+                            },
+                            eventLoader: (date){
+                              return loadEvent(date.add(Duration(hours:12)));
+                            } ,
+
+                            firstDay: DateTime.utc(2010, 10, 16),
+                            lastDay: DateTime.utc(2030, 3, 14),
+                            focusedDay: _selectedDay,
+                            calendarBuilders: CalendarBuilders(
+                              selectedBuilder: (context, date, events) => Container(
+                                  margin: const EdgeInsets.all(8.0),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                      color: Colors.indigo.shade400,
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: Text(
+                                    date.day.toString(),
+                                    style: TextStyle(color: Colors.white,),
+                                  )),
+                              todayBuilder: (context, date, events) => Container(
+                                  margin: const EdgeInsets.all(8.0),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                      color: Colors.indigo.shade100.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.white70)),
+                                  child: Text(
+                                    date.day.toString(),
+                                    style: TextStyle(color: Colors.indigo.shade100.withOpacity(0.9), fontWeight: FontWeight.w600),
+                                  )),
+                              markerBuilder: (_, date,__,) {
+                                  if (loadEvent(date.add(Duration(hours:12))).isNotEmpty) {
+                                    return
+                                      Positioned(
+                                        top: 0,
+                                        right: 1,
+                                        child: Container(
+                                            constraints: BoxConstraints(
+                                              minWidth: 14,
+                                              minHeight: 14,),
+                                            padding: EdgeInsets.all(4),
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.deepOrangeAccent),
+
+                                            child: Text('${loadEvent(date.add(Duration(hours:12))).length}', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600), textAlign: TextAlign.center,)),
+                                      );
+                                  } return null;
+                              },
+                            ),
                           ),
                         ),
                         //AD Here
                         Padding(
-                          padding: const EdgeInsets.only(bottom:10),
+                          padding: const EdgeInsets.only(top: 5, bottom:10),
                           child: Center(
                             child: AdmobBanner(
                                 adUnitId: ads.getBannerAdId(),

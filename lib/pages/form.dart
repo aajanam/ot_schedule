@@ -34,9 +34,8 @@ class EventForm extends StatefulWidget {
 class _EventFormState extends State<EventForm> {
 
   DateTime selDate;
- // DateTime now = DateTime.now();
 
-  List<String> durationList =['1'];
+  List<int> durationList =[1,2,3,4];
   List<String> oTList = [];
   int duration = 1;
   List bookTime = [];
@@ -47,12 +46,15 @@ class _EventFormState extends State<EventForm> {
   List bookTimeAll = [];
   List<String> suggestions = [];
   String dept = '';
+  bool cito = false;
+  Duration durationFromNow;
 
 
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController dateController = TextEditingController();
   TextEditingController doctorController = TextEditingController();
+  TextEditingController procedureController = TextEditingController();
 
   List<String> playIds =[];
 
@@ -61,7 +63,7 @@ class _EventFormState extends State<EventForm> {
         playerIds: playerId,
         content: messageBody,
         heading: messageTitle,
-        sendAfter: selDate.add(Duration(hours: startHour - 2)).toUtc(),
+        sendAfter: cito == false ? selDate.add(Duration(hours: startHour - 2)).toUtc() : DateTime.now().toUtc(),
         androidSmallIcon: 'onesignal',
       androidLargeIcon: 'onesignal_blue'
     ));
@@ -75,6 +77,8 @@ class _EventFormState extends State<EventForm> {
 
   @override
   void initState() {
+    selDate = DateTime(widget.date.year, widget.date.month, widget.date.day);
+
     if (widget.numbOt != null) {
       if (widget.event != null) {
         doctorController.text = widget.event.doctorName;
@@ -88,18 +92,31 @@ class _EventFormState extends State<EventForm> {
     final event = Provider.of<EventProvider>(context, listen: false);
     if(widget.hour != null){
       startHour = widget.hour;
+
     }
     if(widget.event != null){
       event.loadAll(widget.event);
         OT = widget.event.oT;
+        procedureController.text = widget.event.procedure;
+        duration = widget.event.endHour - widget.event.startHour;
+        if(widget.event.procedure.startsWith('CITO : ')){
+          setState(() {
+            cito = true;
+          });
+        }
     } else {
       event.loadAll(null);
         OT = widget.index.toString();
+      durationFromNow = selDate.add(Duration(hours: startHour)).difference(DateTime.now());
+      if(!durationFromNow.inHours.isNegative && durationFromNow.inHours < 7 ){
+        setState(() {
+          cito = true;
+        });
+      }
     }
 
-    selDate = DateTime(widget.date.year, widget.date.month, widget.date.day);
     dateController.text = formatDate(selDate,['dd',' ','M',' ', 'yyyy']);
-    // TODO: implement initState
+
     super.initState();
   }
 
@@ -107,6 +124,7 @@ class _EventFormState extends State<EventForm> {
   void dispose() {
     dateController.dispose();
     doctorController.dispose();
+    procedureController.dispose();
     super.dispose();
   }
 
@@ -141,7 +159,6 @@ class _EventFormState extends State<EventForm> {
                 builder: (context, snapshot) {
                   if(snapshot.hasData) {
                         getTimeList(snapshot, date);
-                        getDurationLists();
                       }
                   return StreamBuilder<List<RegUser>>(
                     stream: users.users,
@@ -161,12 +178,13 @@ class _EventFormState extends State<EventForm> {
                                     Expanded(
                                       flex: 6,
                                       child: TextFormField(
+                                        style: TextStyle(color: date.isBefore(today) ? Colors.pinkAccent.shade100 : null),
                                           onTap: youCanEdit || drCanEdit  ?
                                               () async {
                                             DateTime picked = await showDatePicker(
                                                 context: context,
                                                 initialDate: selDate,
-                                                firstDate: DateTime(2021),
+                                                firstDate: widget.date != null ? selDate : DateTime.now(),
                                                 lastDate: DateTime(2050));
                                             if (picked != null){
                                               setState(() {
@@ -193,28 +211,32 @@ class _EventFormState extends State<EventForm> {
                                     ),
                                     Expanded(
                                         flex: 4,
-                                        child: youCanEdit || drCanEdit ?  DropdownButtonFormField(
-                                          isDense: true,
-                                          isExpanded: false,
-                                          items: oTList.map((e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e))).toList(),
-                                          onChanged: (newValue) {
-                                            setState(() {
-                                              OT = newValue;
-                                              event.changeOT = OT;
-                                            });
-                                            getTimeList(snapshot, date);
-                                          },
-                                          onSaved: (newValue){
-                                            event.changeOT = OT;
+                                        child: youCanEdit || drCanEdit ?
+                                        Listener(
+                                          onPointerDown: (_) => FocusScope.of(context).unfocus(),
+                                          child: DropdownButtonFormField(
+                                            isDense: true,
+                                            isExpanded: false,
+                                            items: oTList.map((e) => DropdownMenuItem(
+                                                value: e,
+                                                child: Text(e))).toList(),
+                                            onChanged: (newValue) {
+                                              setState(() {
+                                                OT = newValue;
+                                                event.changeOT = OT;
+                                              });
+                                              getTimeList(snapshot, date);
                                             },
-                                          value: OT,
-                                          decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              //contentPadding: EdgeInsets.only(top:5),
-                                              icon:Icon(Icons.room_outlined, color: Colors.lightBlue.shade700),
-                                              labelText: 'OT Room'),
+                                            onSaved: (newValue){
+                                              event.changeOT = OT;
+                                              },
+                                            value: OT,
+                                            decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                //contentPadding: EdgeInsets.only(top:5),
+                                                icon:Icon(Icons.room_outlined, color: Colors.lightBlue.shade700),
+                                                labelText: 'OT Room'),
+                                          ),
                                         ) : TextFormField(
                                           initialValue: widget.event.oT,
                                           enabled: false,
@@ -256,33 +278,36 @@ class _EventFormState extends State<EventForm> {
                                                    ),
                                                  ),
 
-                                                 DropdownButton<String>(
-                                                     underline: Container(),
-                                                     isExpanded: true,
-                                                     isDense: true,
-                                                     hint: Text(startHour != null && startHour >= 10 ? '$startHour:00'
-                                                         : startHour != null && startHour < 10 ? '0$startHour:00'
-                                                         : '',
-                                                         style: TextStyle( color: availableTime.contains(startHour) ? Colors.white : Colors.yellowAccent)),
+                                                 Listener(
+                                                   onPointerDown: (_) => FocusScope.of(context).unfocus(),
+                                                   child: DropdownButton<String>(
+                                                       underline: Container(),
+                                                       isExpanded: true,
+                                                       isDense: true,
+                                                       hint: Text(startHour != null && startHour >= 10 ? '$startHour:00'
+                                                           : startHour != null && startHour < 10 ? '0$startHour:00'
+                                                           : '',
+                                                           style: TextStyle( color: availableTime.contains(startHour) ? Colors.white : Colors.pinkAccent.shade100)),
 
-                                                     items: youCanEdit || drCanEdit ?
-                                                     availableTime.map(
-                                                           (value) =>
-                                                           DropdownMenuItem<
-                                                               String>(
-                                                             child:
-                                                             Text(value >= 10 ?'$value:00' : '0$value:00', ),
-                                                             value: value.toString(),
-                                                           ),
-                                                     )
-                                                         .toList() : null,
-                                                     onChanged: (value) {
+                                                       items: youCanEdit || drCanEdit ?
+                                                       availableTime.map(
+                                                             (value) =>
+                                                             DropdownMenuItem<
+                                                                 String>(
+                                                               child:
+                                                               Text(value >= 10 ?'$value:00' : '0$value:00', ),
+                                                               value: value.toString(),
+                                                             ),
+                                                       )
+                                                           .toList() : null,
+                                                       onChanged: (value) {
 
-                                                       setState(() {
-                                                         startHour = int.parse(value);
-                                                       });
-                                                       getDurationLists();
-                                                     }
+                                                         setState(() {
+                                                           startHour = int.parse(value);
+                                                         });
+                                                         getDurationLists();
+                                                       }
+                                                   ),
                                                  ),
                                                ],
                                              ),
@@ -296,39 +321,50 @@ class _EventFormState extends State<EventForm> {
                                     Expanded(
                                         flex: 5,
                                         child:youCanEdit  || drCanEdit ?
-                                        DropdownButtonFormField(
-                                          items: youCanEdit || drCanEdit ? durationList.map((e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e == '1' ? '$e hour' : '$e hours'))).toList() : [],
-                                          onChanged: (newValue) {
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 10.0),
+                                          child: Listener(
+                                            onPointerDown: (_) => FocusScope.of(context).unfocus(),
+                                            child: DropdownButtonFormField(
 
-                                            setState(() {
-                                              duration = int.parse(newValue);
+                                              items: youCanEdit || drCanEdit ? durationList.map((e) => DropdownMenuItem(
+                                                  value: e,
+                                                  child: Text(e == 1 ? '$e hour' : '$e hours'))).toList() : [],
+                                              onChanged: (newValue) {
 
-                                            });
-                                          },
-                                          onSaved: (newValue){
-                                            endTIme = startHour + duration;
-                                            event.changeEndHour = endTIme;
-                                            for (var i = 0; i < int.parse(newValue); i++){
-                                              bookTime.add(startHour + i);
-                                            }
-                                            bookTime = bookTime.toSet().toList();
-                                          },
-                                          value: '$duration',
-                                          decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              contentPadding: EdgeInsets.zero,
-                                              icon:Icon(Icons.hourglass_bottom_rounded, color: Colors.lightBlue.shade700),
-                                              labelText: 'Duration'),
-                                        ) : TextFormField(
-                                          initialValue: '$duration hour(s)',
-                                          enabled: false,
-                                          decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              contentPadding: EdgeInsets.zero,
-                                              icon:Icon(Icons.hourglass_bottom_rounded, color: Colors.lightBlue.shade700),
-                                              labelText: 'Duration'),
+                                                setState(() {
+                                                  duration = newValue;
+
+                                                });
+                                              },
+                                              onSaved: (newValue){
+                                                endTIme = startHour + duration;
+                                                event.changeEndHour = endTIme;
+                                                for (var i = 0; i < newValue; i++){
+                                                  bookTime.add(startHour + i);
+                                                }
+                                                bookTime = bookTime.toSet().toList();
+                                              },
+                                              value: duration,
+                                              //value: event?.startHour != null && event?.endHour != null ?'${event.endHour - event.startHour}': '$duration',
+                                              decoration: InputDecoration(
+                                                  border: InputBorder.none,
+                                                  contentPadding: EdgeInsets.zero,
+                                                  icon:Icon(Icons.hourglass_bottom_rounded, color: Colors.lightBlue.shade700),
+                                                  labelText: 'Duration'),
+                                            ),
+                                          ),
+                                        ) : Padding(
+                                          padding: const EdgeInsets.only(bottom: 10.0),
+                                          child: TextFormField(
+                                            initialValue: event.endHour - event.startHour > 1 ? '${event.endHour - event.startHour} hours' : '${event.endHour - event.startHour} hour',
+                                            enabled: false,
+                                            decoration: InputDecoration(
+                                                border: InputBorder.none,
+                                                contentPadding: EdgeInsets.zero,
+                                                icon:Icon(Icons.hourglass_bottom_rounded, color: Colors.lightBlue.shade700),
+                                                labelText: 'Duration'),
+                                          ),
                                         )
                                     ),
                                   ],
@@ -336,9 +372,9 @@ class _EventFormState extends State<EventForm> {
                                 SizedBox(height: 20,),
                                 TypeAheadField(
                                   noItemsFoundBuilder: (BuildContext context) =>
-                                      ListTile(
-                                        title: Text('No Doctor\'s name found', style: TextStyle(color: Colors.white54),)),
+                                      null,
                                   textFieldConfiguration: TextFieldConfiguration(
+                                    enabled: youCanEdit || drCanEdit ? true : false,
                                     cursorColor: Colors.white,
                                     onChanged: (val){
                                       setState(() {
@@ -374,26 +410,36 @@ class _EventFormState extends State<EventForm> {
                                     });
                                   },
                                 ),
-                                SizedBox(height: 18,),
+                                SizedBox(height: 25,),
                                 TextFormField(
+                                  style: TextStyle(height:1.4, leadingDistribution: TextLeadingDistribution.even ),
                                   cursorColor: Colors.white,
                                   maxLines: null,
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit || drCanEdit ? true : false,
                                   decoration:
                                   InputDecoration(
+                                    prefixText: (widget.event == null && cito == true) || (widget.event != null && cito == true && !widget.event.procedure.startsWith('CITO : ')) ? 'CITO : ' : null,
+                                      prefixStyle: TextStyle(color: Colors.white70),
                                       contentPadding: EdgeInsets.zero,
                                       icon:Icon(Icons.medical_services_outlined, color: Colors.lightBlue.shade700),
                                       labelText: 'Procedure',
-                                    labelStyle: TextStyle(color: Colors.grey.shade400),
+                                    labelStyle: TextStyle(color: Colors.grey.shade400, height: 0.6, leadingDistribution: TextLeadingDistribution.even ),
                                     hintStyle: TextStyle(color: Colors.white38),),
-                                  initialValue: event.procedure,
-                                  onChanged: (val) =>
-                                  event.changeProcedure = val,
+                                  controller: procedureController,
+                                  onSaved:(val) {
+                                    if (cito == true && !procedureController.text.startsWith('CITO : ')) {
+                                      var value = 'CITO : ' + val;
+                                      event.changeProcedure = value;
+                                    }else {
+                                      event.changeProcedure = val;
+                                    }
+                                  },
                                   textInputAction: TextInputAction.next,
                                 ),
-                                SizedBox(height: 18,),
+                                SizedBox(height: 25,),
                                 TextFormField(
+                                  style: TextStyle(height:1.4, leadingDistribution: TextLeadingDistribution.even ),
                                   cursorColor: Colors.white,
                                   maxLines: null,
                                   textCapitalization: TextCapitalization.sentences,
@@ -403,15 +449,16 @@ class _EventFormState extends State<EventForm> {
                                       contentPadding: EdgeInsets.zero,
                                       icon:Icon(Icons.analytics_outlined, color: Colors.lightBlue.shade700),
                                       labelText: 'Diagnose',
-                                    labelStyle: TextStyle(color: Colors.grey.shade400),
+                                    labelStyle: TextStyle(color: Colors.grey.shade400, height: 0.6, leadingDistribution: TextLeadingDistribution.even ),
                                     hintStyle: TextStyle(color: Colors.white38),),
                                   initialValue: event.diagnose,
                                   onChanged: (val) =>
                                   event.changeDiagnose = val,
                                   textInputAction: TextInputAction.next,
                                 ),
-                                SizedBox(height: 18,),
+                                SizedBox(height: 25,),
                                 TextFormField(
+                                  style: TextStyle(height:1.4, leadingDistribution: TextLeadingDistribution.even ),
                                   cursorColor: Colors.white,
                                   textCapitalization: TextCapitalization.sentences,
                                   enabled: youCanEdit  || drCanEdit? true : false,
@@ -419,8 +466,8 @@ class _EventFormState extends State<EventForm> {
                                   decoration:
                                   InputDecoration(icon:Icon(Icons.sick_outlined, color: Colors.lightBlue.shade700),
                                       contentPadding: EdgeInsets.zero,
-                                      labelText: 'Patient\'s description / Request description',
-                                    labelStyle: TextStyle(color: Colors.grey.shade400),
+                                      labelText: 'Description',
+                                    labelStyle: TextStyle(color: Colors.grey.shade400, height: 0.6, leadingDistribution: TextLeadingDistribution.even ),
                                     hintStyle: TextStyle(color: Colors.white38),),
                                   initialValue: event.patientName,
                                   onChanged: (val) =>
@@ -430,72 +477,98 @@ class _EventFormState extends State<EventForm> {
                                 ),
                                 SizedBox(height: 33,),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    widget.event != null && widget.event.creatorId == Auth().currentUser.uid || drCanEdit ? ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                                          primary: Colors.pink,
+                                    Row(
+                                      children: [
+                                        Text("CITO ?",style: TextStyle(color: cito == true ? Colors.tealAccent : Colors.white70)),
+                                        SizedBox(width: 8,),
+                                        Switch(
+                                          value: cito,
+                                          onChanged: (val){
+                                            setState(() {
+                                              cito = val;
+                                            });
+                                            if (cito == false
+                                                && procedureController.text.startsWith('CITO : ')){
+                                              var newVal = procedureController.text.substring(7,procedureController.text.length);
+                                              setState(() {
+                                                procedureController.text = newVal;
+
+                                              });
+                                            }
+                                          },
                                         ),
-                                        onPressed:
-                                            (){
-                                          _confirmDelete(context, snap);
-                                            },
-                                        child: Text('Delete')) : Container(),
-                                    SizedBox(width: 30,),
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
-                                      child: youCanEdit  || drCanEdit ?
-                                      ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                                          ),
-                                          onPressed:
-                                          availableTime.contains(startHour)? (){
-                                        setState(() {
-                                          _formKey.currentState.save();
-                                          event.changeDate = selDate;
-                                          event.changeDoctorId = snp?.data?.firstWhereOrNull((element) => element.displayName == doctorController.text)?.uid;
-                                          event.changeStartHour = startHour;
-                                          event.changeBookTime = bookTime;
-                                          dept = snp?.data?.firstWhereOrNull((element) => element.displayName == event.doctorName)?.department;
-                                        });
-                                        if (dept == 'Obs & Gyn') {
-                                          for (var i in snp.data.where((element) => element.department == dept || element.department == 'Pediatric')){
-                                            if (i.deviceToken != null) {
-                                              playIds.add(i.deviceToken.toString());
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        widget.event != null && widget.event.creatorId == Auth().currentUser.uid || drCanEdit ? ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                              primary: Colors.pink,
+                                            ),
+                                            onPressed:
+                                                (){
+                                              _confirmDelete(context, snap);
+                                                },
+                                            child: Text('Delete')) : Container(),
+                                        SizedBox(width: 30,),
+                                        Padding(
+                                          padding: const EdgeInsets.only(right: 8.0),
+                                          child: youCanEdit  || drCanEdit ?
+                                          ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                              ),
+                                              onPressed:
+                                              availableTime.contains(startHour)? (){
+                                            setState(() {
+                                              _formKey.currentState.save();
+                                              event.changeDate = selDate;
+                                              event.changeDoctorId = snp?.data?.firstWhereOrNull((element) => element.displayName == doctorController.text)?.uid;
+                                              event.changeStartHour = startHour;
+                                              event.changeBookTime = bookTime;
+                                              dept = snp?.data?.firstWhereOrNull((element) => element.displayName == event.doctorName)?.department;
+                                            });
+                                            if (dept == 'Obs & Gyn') {
+                                              for (var i in snp.data.where((element) => element.department == dept || element.department == 'Pediatric' || element.department == 'OT' || element.department == 'Anesthesiology')){
+                                                if (i.deviceToken != null) {
+                                                  playIds.add(i.deviceToken.toString());
+                                                }
+                                              }
+                                            }else{
+                                              for (var i in snp.data.where((element) => element.department == dept || element.department == 'OT' || element.department == 'Anesthesiology')){
+                                                if (i.deviceToken != null) {
+                                                  playIds.add(i.deviceToken.toString());
+                                                }
+                                              }
                                             }
-                                          }
-                                        }else{
-                                          for (var i in snp.data.where((element) => element.department == dept)){
-                                            if (i.deviceToken != null) {
-                                              playIds.add(i.deviceToken.toString());
+                                            if (widget.event == null && playIds.isNotEmpty) {
+                                              sendMessage(
+                                                  playIds,
+                                                  startHour >= 10 ? '${dateController.text} at $startHour:00' : '${dateController.text} at 0$startHour:00',
+                                                  '${event.procedure} by Dr.${event.doctorName}');
                                             }
-                                          }
-                                        }
-                                        if (widget.event == null && playIds.isNotEmpty) {
-                                          sendMessage(
-                                              playIds,
-                                              startHour >= 10 ? '${dateController.text} at $startHour:00' : '${dateController.text} at 0$startHour:00',
-                                              '${event.procedure} by Dr.${event.doctorName}');
-                                        }
-                                        else if ((widget.event != null && widget?.event?.startHour  != startHour || widget.event != null && DateTime.parse(widget?.event?.date) != selDate) &&  playIds.isNotEmpty) {
-                                          sendMessage(
-                                              playIds,
-                                              startHour >= 10 ? '${dateController.text} at $startHour:00' : '${dateController.text} at 0$startHour:00',
-                                              '${event.procedure} by Dr.${event.doctorName}');
-                                        }
+                                            else if ((widget.event != null && widget?.event?.startHour  != startHour || widget.event != null && DateTime.parse(widget?.event?.date) != selDate) &&  playIds.isNotEmpty) {
+                                              sendMessage(
+                                                  playIds,
+                                                  startHour >= 10 ? '${dateController.text} at $startHour:00' : '${dateController.text} at 0$startHour:00',
+                                                  '${event.procedure} by Dr.${event.doctorName}');
+                                            }
 
-                                        event.saveEvent(snap.data.where((element) => element.name.toLowerCase() == widget.hospital.toLowerCase()).first.id);
+                                            event.saveEvent(snap.data.where((element) => element.name.toLowerCase() == widget.hospital.toLowerCase()).first.id);
 
-                                        Navigator.of(context).pop();
-                                      } : null,
-                                          child: Text('Save')) : Container(),
+                                            Navigator.of(context).pop();
+                                          } : null,
+                                              child: Text('Save')) : Container(),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                                 SizedBox(height: 20,),
-
                                 widget.event != null ?
                                 Row(
                                   children: [
@@ -534,11 +607,11 @@ class _EventFormState extends State<EventForm> {
     }
   }
 
-  void getDurationLists() {
-    durationList = ['1'];
+  void getDurationLists() async {
+    durationList = [1];
     for(var i = 2; i< 5 ; i ++){
       if(availableTime.contains( startHour + i - 1 )){
-        durationList.add(i.toString());
+         durationList.add(i);
       }else {
         break;
       }
@@ -547,7 +620,7 @@ class _EventFormState extends State<EventForm> {
   }
 
   void getTimeList(AsyncSnapshot<List<Events>> snapshot, DateTime date) {
-    final event = Provider.of<EventProvider>(context);
+    final event = Provider.of<EventProvider>(context, listen: false);
     DateTime now = DateTime.now();
     DateTime today = DateTime(now.year, now.month, now.day);
     var eventOfDay = snapshot.data.where((element) => element.oT == OT
